@@ -1,4 +1,3 @@
-This repo is a fork from main repo and will usually have new features bundled faster than main repo (and maybe bundle some bugs, too).
 # Facebook Chat API (Unofficial)
 <img alt="version" src="https://img.shields.io/github/package-json/v/fb-chat-api/fb-chat-api?label=github&style=flat-square">
 
@@ -77,7 +76,7 @@ Note that a message can only be a regular message (which can be empty) and optio
 
 __Tip__: to find your own ID, you can look inside the cookies. The `userID` is under the name `c_user`.
 
-__Example (Basic Message)__
+__Basic Message Example__
 ```js
 const login = require("fb-chat-api-temp");
 
@@ -90,7 +89,7 @@ login({email: "FB_EMAIL", password: "FB_PASSWORD"}, (err, api) => {
 });
 ```
 
-__Example (File upload)__
+__Upload Message Attachment Example__
 ```js
 const login = require("fb-chat-api-temp");
 
@@ -174,58 +173,19 @@ login({appState: JSON.parse(fs.readFileSync('appstate.json', 'utf8'))}, (err, ap
 
 ## FAQS
 
-1. How do I run tests?
-> For tests, create a `test-config.json` file that resembles `example-config.json` and put it in the `test` directory. From the root >directory, run `npm test`.
-
-2. Why doesn't `sendMessage` always work when I'm logged in as a page?
+1. Why doesn't `sendMessage` always work when I'm logged in as a page?
 > Pages can't start conversations with users directly; this is to prevent pages from spamming users.
 
-3. What do I do when `login` doesn't work?
+2. What do I do when `login` doesn't work?
 > First check that you can login to Facebook using the website. If login approvals are enabled, you might be logging in incorrectly. For how to handle login approvals, read our docs on [`login`](DOCS.md#login).
 
-4. How can I avoid logging in every time?  Can I log into a previous session?
-> We support caching everything relevant for you to bypass login. `api.getAppState()` returns an object that you can save and pass into login as `{appState: mySavedAppState}` instead of the credentials object.  If this fails, your session has expired.
+3. Do you support sending messages as a page?
+> No.
 
-5. Do you support sending messages as a page?
-> Yes, set the pageID option on login (this doesn't work if you set it using api.setOptions, it affects the login process).
-> ```js
-> login(credentials, {pageID: "000000000000000"}, (err, api) => { … }
-> ```
-
-6. I'm getting some crazy weird syntax error like `SyntaxError: Unexpected token [`!!!
-> Please try to update your version of node.js before submitting an issue of this nature.  We like to use new language features.
-
-7. I don't want all of these logging messages!
+4. I don't want all of these logging messages!
 > You can use `api.setOptions` to silence the logging. You get the `api` object from `login` (see example above). Do
 > ```js
 > api.setOptions({
 >     logLevel: "silent"
 > });
 > ```
-
-<a name="projects-using-this-api"></a>
-## Projects using this API:
-- [c3c](https://github.com/lequanglam/c3c) - A bot that can be customizable using plugins. Support Facebook & Discord.
-- [GOAT BOT 🐐](https://github.com/ntkhang03/Goat-Bot) - A bot chat Messenger can be customizable using scripts. Support .
-
-## Projects using this API (original repository, facebook-chat-api):
-
-- [Messer](https://github.com/mjkaufer/Messer) - Command-line messaging for Facebook Messenger
-- [messen](https://github.com/tomquirk/messen) - Rapidly build Facebook Messenger apps in Node.js
-- [Concierge](https://github.com/concierge/Concierge) - Concierge is a highly modular, easily extensible general purpose chat bot with a built in package manager
-- [Marc Zuckerbot](https://github.com/bsansouci/marc-zuckerbot) - Facebook chat bot
-- [Marc Thuckerbot](https://github.com/bsansouci/lisp-bot) - Programmable lisp bot
-- [MarkovsInequality](https://github.com/logicx24/MarkovsInequality) - Extensible chat bot adding useful functions to Facebook Messenger
-- [AllanBot](https://github.com/AllanWang/AllanBot-Public) - Extensive module that combines the facebook api with firebase to create numerous functions; no coding experience is required to implement this.
-- [Larry Pudding Dog Bot](https://github.com/Larry850806/facebook-chat-bot) - A facebook bot you can easily customize the response
-- [fbash](https://github.com/avikj/fbash) - Run commands on your computer's terminal over Facebook Messenger
-- [Klink](https://github.com/KeNt178/klink) - This Chrome extension will 1-click share the link of your active tab over Facebook Messenger
-- [Botyo](https://github.com/ivkos/botyo) - Modular bot designed for group chat rooms on Facebook
-- [matrix-puppet-facebook](https://github.com/matrix-hacks/matrix-puppet-facebook) - A facebook bridge for [matrix](https://matrix.org)
-- [facebot](https://github.com/Weetbix/facebot) - A facebook bridge for Slack.
-- [Botium](https://github.com/codeforequity-at/botium-core) - The Selenium for Chatbots
-- [Messenger-CLI](https://github.com/AstroCB/Messenger-CLI) - A command-line interface for sending and receiving messages through Facebook Messenger.
-- [AssumeZero-Bot](https://github.com/AstroCB/AssumeZero-Bot) – A highly customizable Facebook Messenger bot for group chats.
-- [Miscord](https://github.com/Bjornskjald/miscord) - An easy-to-use Facebook bridge for Discord.
-- [chat-bridge](https://github.com/rexx0520/chat-bridge) - A Messenger, Telegram and IRC chat bridge.
-- [messenger-auto-reply](https://gitlab.com/theSander/messenger-auto-reply) - An auto-reply service for Messenger.
