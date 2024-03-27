@@ -1,43 +1,29 @@
 This repo is a fork from main repo and will usually have new features bundled faster than main repo (and maybe bundle some bugs, too).
-See main repo [here](https://github.com/Schmavery/facebook-chat-api).
-
-# Unofficial Facebook Chat API
+# Facebook Chat API (Unofficial)
 <img alt="version" src="https://img.shields.io/github/package-json/v/fb-chat-api/fb-chat-api?label=github&style=flat-square">
 
-Facebook now has an official API for chat bots [here](https://developers.facebook.com/docs/messenger-platform).
+META now has an official API for Facbook bots [here](https://developers.facebook.com/docs/messenger-platform).
 
-This API is the only way to automate chat functionalities on a user account. We do this by emulating the browser. This means doing the exact same GET/POST requests and tricking Facebook into thinking we're accessing the website normally. Because we're doing it this way, this API won't work with an auth token but requires the credentials of a Facebook account.
+This API is the only way to automate chat functionalities on a user account. We do this by emulating the browser. This means doing the exact same GET/POST requests and tricking Facebook into thinking we're accessing the website normally. Because we're doing it this way, this API won't work with an auth token but requires the credentials of a Facebook account (COOKIES).
 
 _Disclaimer_: We are not responsible if your account gets banned for spammy activities such as sending lots of messages to people you don't know, sending messages very quickly, sending spammy looking URLs, logging in and out very quickly... Be responsible Facebook citizens.
 
-See [below](#projects-using-this-api) for projects using this API.
-
-See the [full changelog](/CHANGELOG.md) for release details.
-
 ## Install
-~~If you just want to use fb-chat-api, you should use this command:~~
-
-~~It will download `fb-chat-api` from NPM~~
-<h1><b>(Not available in NPM)</b></h1>
-
 
 ### Bleeding edge
 If you want to use bleeding edge (directly from github) to test new features or submit bug report, this is the command for you:
 ```bash
-npm install ntkhang03/fb-chat-api-temp
+npm install ron132005/funiestas-fca
 ```
 ### Note
 **Currently, this repo is not available on NPM. Please use the bleeding edge version.**
 
-## Testing your bots
-~~If you want to test your bots without creating another account on Facebook, you can use [Facebook Whitehat Accounts](https://www.facebook.com/whitehat/accounts/).~~ (Facebook has removed this feature.)
-
 ## Example Usage
 ### Note
-**Currently, login with credentials is not available. You need to create a file named `appstate.json` to save your login state. You can use [c3c-fbstate](https://github.com/c3cbot/c3c-fbstate) to get fbstate.json (appstate.json)**
+**Logging in with appstate is the only way available. You need to create a file named `appstate.json` to save your login state. You can use [c3c-fbstate](https://github.com/c3cbot/c3c-fbstate) to get fbstate.json (appstate.json)**
 
 ```javascript
-const login = require("fb-chat-api-temp");
+const login = require("funiestas-fca");
 
 // Create simple echo bot
 login({email: "FB_EMAIL", password: "FB_PASSWORD"}, (err, api) => {
@@ -52,7 +38,7 @@ login({email: "FB_EMAIL", password: "FB_PASSWORD"}, (err, api) => {
 Or use `appstate.json` to save your login state:
 
 ```javascript
-const login = require("fb-chat-api-temp");
+const login = require("funiestas-fca");
 const fs = require("fs");
 
 // Create simple echo bot
@@ -130,7 +116,7 @@ __Example__
 
 ```js
 const fs = require("fs");
-const login = require("fb-chat-api-temp");
+const login = require("funiestas-fca");
 
 var credentials = {email: "FB_EMAIL", password: "FB_PASSWORD"};
 
