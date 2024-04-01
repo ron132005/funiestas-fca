@@ -331,7 +331,7 @@ function loginHelper(appState, email, password, globalOptions, callback, prCallb
 	// At the end we call the callback or catch an exception
 	mainPromise
 		.then(function () {
-			log.info("login", 'Done logging in.');
+			log.info("login", 'JARVIS HAS SUCCESSFULLY BEEN INITIATED.');
 			return callback(null, api);
 		})
 		.catch(function (e) {
