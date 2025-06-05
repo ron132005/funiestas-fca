@@ -2,39 +2,6 @@
 
 const utils = require("./utils");
 const log = require("npmlog");
-const axios = require("axios");
-
-async function fetchMQTTConfig(cookieString, userAgent) {
-	try {
-		const res = await axios.post(
-			"https://www.facebook.com/api/graphql/",
-			`doc_id=5307088816077648&variables={}`,
-			{
-				headers: {
-					"Content-Type": "application/x-www-form-urlencoded",
-					"User-Agent": userAgent,
-					"Cookie": cookieString,
-					"Referer": "https://www.facebook.com/",
-					"Origin": "https://www.facebook.com"
-				}
-			}
-		);
-
-		const data = res.data;
-		const mqtt = data?.data?.mqtt_config;
-		if (!mqtt) throw new Error("No MQTT config found");
-
-		return {
-			mqttEndpoint: mqtt.mqtt_endpoint,
-			irisSeqID: mqtt.iris_seq_id,
-			region: mqtt.region.toUpperCase()
-		};
-	} catch (err) {
-		console.error("❌ Failed to fetch MQTT config:", err.message);
-		return null;
-	}
-}
-
 
 let checkVerified = null;
 
@@ -107,7 +74,7 @@ function setOptions(globalOptions, options) {
 	});
 }
 
-async function buildAPI(globalOptions, html, jar) {
+function buildAPI(globalOptions, html, jar) {
 	const maybeCookie = jar.getCookies("https://www.facebook.com").filter(function (val) {
 		return val.cookieString().split("=")[0] === "c_user";
 	});
@@ -163,24 +130,8 @@ async function buildAPI(globalOptions, html, jar) {
 				log.info("login", `Got this account's message region: ${region}`);
 				log.info("login", `[Unused] Polling endpoint: ${legacyFBMQTTMatch[6]}`);
 			} else {
-				log.warn("login", "Cannot get MQTT region & sequence ID from HTML. Trying GraphQL...");
-
-const cookieString = jar.getCookies("https://www.facebook.com")
-	.map(c => `${c.key}=${c.value}`)
-	.join("; ");
-
-const mqttInfo = await fetchMQTTConfig(cookieString, globalOptions.userAgent);
-
-if (mqttInfo) {
-	mqttEndpoint = mqttInfo.mqttEndpoint;
-	irisSeqID = mqttInfo.irisSeqID;
-	region = mqttInfo.region;
-
-	log.info("login", `✅ Fallback success — MQTT Region: ${region}`);
-} else {
-	log.warn("login", "❌ Failed to fetch MQTT config from GraphQL.");
-	noMqttData = html;
-}
+				log.warn("login", "Cannot get MQTT region & sequence ID.");
+				noMqttData = html;
 			}
 		}
 	}
@@ -294,43 +245,47 @@ function loginHelper(appState, email, password, globalOptions, callback, prCallb
 	// If we're given an appState we loop through it and save each cookie
 	// back into the jar.
 	if (appState) {
-  if (utils.getType(appState) === 'Array' && appState.some(c => c.name)) {
-    appState = appState.map(c => ({
-      key: c.name,
-      value: c.value,
-      domain: c.domain,
-      path: c.path,
-      expires: c.expires
-    }));
-  } else if (utils.getType(appState) === 'String') {
-    const arrayAppState = [];
-    appState.split(';').forEach(c => {
-      const [key, value] = c.trim().split('=');
-      arrayAppState.push({
-        key: key || "",
-        value: value || "",
-        domain: "facebook.com",
-        path: "/",
-        expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).toUTCString()
-      });
-    });
-    appState = arrayAppState;
-  }
+		// check and convert cookie to appState
+		if (utils.getType(appState) === 'Array' && appState.some(c => c.name)) {
+			appState = appState.map(c => {
+				c.key = c.name;
+				delete c.name;
+				return c;
+			})
+		}
+		else if (utils.getType(appState) === 'String') {
+			const arrayAppState = [];
+			appState.split(';').forEach(c => {
+				const [key, value] = c.split('=');
 
-  appState.forEach(function (c) {
-    const str = `${c.key}=${c.value}; expires=${c.expires}; domain=${c.domain}; path=${c.path};`;
-    jar.setCookie(str, "https://" + c.domain);
-  });
+				arrayAppState.push({
+					key: (key || "").trim(),
+					value: (value || "").trim(),
+					domain: "facebook.com",
+					path: "/",
+					expires: new Date().getTime() + 1000 * 60 * 60 * 24 * 365
+				});
+			});
+			appState = arrayAppState;
+		}
 
-  mainPromise = utils.get('https://www.facebook.com/', jar, null, globalOptions, { noRef: true })
-    .then(() => utils.saveCookies(jar));
-} else {
-  if (email) {
-    throw { error: "Currently, the login method by email and password is no longer supported, please use the login method by appState" };
-  } else {
-    throw { error: "No appState given." };
-  }
-}
+		appState.map(function (c) {
+			const str = c.key + "=" + c.value + "; expires=" + c.expires + "; domain=" + c.domain + "; path=" + c.path + ";";
+			jar.setCookie(str, "http://" + c.domain);
+		});
+
+		// Load the main page.
+		mainPromise = utils
+			.get('https://www.facebook.com/', jar, null, globalOptions, { noRef: true })
+			.then(utils.saveCookies(jar));
+	} else {
+		if (email) {
+			throw { error: "Currently, the login method by email and password is no longer supported, please use the login method by appState" };
+		}
+		else {
+			throw { error: "No appState given." };
+		}
+	}
 
 	let ctx = null;
 	let _defaultFuncs = null;
