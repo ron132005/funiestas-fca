@@ -142,7 +142,7 @@ if (oldFBMQTTMatch) {
       }
     }
   }
-
+}
 	// All data available to api functions
 	const ctx = {
 		userID: userID,
