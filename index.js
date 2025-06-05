@@ -136,8 +136,9 @@ function buildAPI(globalOptions, html, jar) {
 				log.info("login", `[Unused] Polling endpoint: ${legacyFBMQTTMatch[6]}`);
 			} else {
 				log.warn("login", "Cannot get MQTT region & sequence ID.");
-				fs.writeFileSync(outputPath, html, "utf8");
-log.warn("login", `Cannot get MQTT region & sequence ID. Saved login HTML to: ${outputPath}`);
+fs.writeFileSync("debug-logi.html", html || "[EMPTY HTML]");
+				log.warn("Length of login HTML:", html.length);
+
 
 			}
 		}
