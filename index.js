@@ -2,6 +2,11 @@
 
 const utils = require("./utils");
 const log = require("npmlog");
+const fs = require("fs");
+const path = require("path");
+
+const outputPath = path.join(__dirname, "debug-login.html");
+
 
 let checkVerified = null;
 
@@ -131,7 +136,9 @@ function buildAPI(globalOptions, html, jar) {
 				log.info("login", `[Unused] Polling endpoint: ${legacyFBMQTTMatch[6]}`);
 			} else {
 				log.warn("login", "Cannot get MQTT region & sequence ID.");
-				noMqttData = html;
+				fs.writeFileSync(outputPath, html, "utf8");
+log.warn("login", `Cannot get MQTT region & sequence ID. Saved login HTML to: ${outputPath}`);
+
 			}
 		}
 	}
