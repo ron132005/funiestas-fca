@@ -2,10 +2,38 @@
 
 const utils = require("./utils");
 const log = require("npmlog");
-const fs = require("fs");
-const path = require("path");
+const axios = require("axios");
 
-const outputPath = path.join(__dirname, "debug-login.html");
+async function fetchMQTTConfig(cookieString, userAgent) {
+	try {
+		const res = await axios.post(
+			"https://www.facebook.com/api/graphql/",
+			`doc_id=5307088816077648&variables={}`,
+			{
+				headers: {
+					"Content-Type": "application/x-www-form-urlencoded",
+					"User-Agent": userAgent,
+					"Cookie": cookieString,
+					"Referer": "https://www.facebook.com/",
+					"Origin": "https://www.facebook.com"
+				}
+			}
+		);
+
+		const data = res.data;
+		const mqtt = data?.data?.mqtt_config;
+		if (!mqtt) throw new Error("No MQTT config found");
+
+		return {
+			mqttEndpoint: mqtt.mqtt_endpoint,
+			irisSeqID: mqtt.iris_seq_id,
+			region: mqtt.region.toUpperCase()
+		};
+	} catch (err) {
+		console.error("❌ Failed to fetch MQTT config:", err.message);
+		return null;
+	}
+}
 
 
 let checkVerified = null;
@@ -135,11 +163,24 @@ function buildAPI(globalOptions, html, jar) {
 				log.info("login", `Got this account's message region: ${region}`);
 				log.info("login", `[Unused] Polling endpoint: ${legacyFBMQTTMatch[6]}`);
 			} else {
-				log.warn("login", "Cannot get MQTT region & sequence ID.");
-fs.writeFileSync("debug-logi.html", html || "[EMPTY HTML]");
-				log.warn("Length of login HTML:", html.length);
+				log.warn("login", "Cannot get MQTT region & sequence ID from HTML. Trying GraphQL...");
 
+const cookieString = jar.getCookies("https://www.facebook.com")
+	.map(c => `${c.key}=${c.value}`)
+	.join("; ");
 
+const mqttInfo = await fetchMQTTConfig(cookieString, globalOptions.userAgent);
+
+if (mqttInfo) {
+	mqttEndpoint = mqttInfo.mqttEndpoint;
+	irisSeqID = mqttInfo.irisSeqID;
+	region = mqttInfo.region;
+
+	log.info("login", `✅ Fallback success — MQTT Region: ${region}`);
+} else {
+	log.warn("login", "❌ Failed to fetch MQTT config from GraphQL.");
+	noMqttData = html;
+}
 			}
 		}
 	}
