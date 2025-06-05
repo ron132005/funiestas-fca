@@ -294,47 +294,43 @@ function loginHelper(appState, email, password, globalOptions, callback, prCallb
 	// If we're given an appState we loop through it and save each cookie
 	// back into the jar.
 	if (appState) {
-		// check and convert cookie to appState
-		if (utils.getType(appState) === 'Array' && appState.some(c => c.name)) {
-			appState = appState.map(c => {
-				c.key = c.name;
-				delete c.name;
-				return c;
-			})
-		}
-		else if (utils.getType(appState) === 'String') {
-			const arrayAppState = [];
-			appState.split(';').forEach(c => {
-				const [key, value] = c.split('=');
+  if (utils.getType(appState) === 'Array' && appState.some(c => c.name)) {
+    appState = appState.map(c => ({
+      key: c.name,
+      value: c.value,
+      domain: c.domain,
+      path: c.path,
+      expires: c.expires
+    }));
+  } else if (utils.getType(appState) === 'String') {
+    const arrayAppState = [];
+    appState.split(';').forEach(c => {
+      const [key, value] = c.trim().split('=');
+      arrayAppState.push({
+        key: key || "",
+        value: value || "",
+        domain: "facebook.com",
+        path: "/",
+        expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).toUTCString()
+      });
+    });
+    appState = arrayAppState;
+  }
 
-				arrayAppState.push({
-					key: (key || "").trim(),
-					value: (value || "").trim(),
-					domain: "facebook.com",
-					path: "/",
-					expires: new Date().getTime() + 1000 * 60 * 60 * 24 * 365
-				});
-			});
-			appState = arrayAppState;
-		}
+  appState.forEach(function (c) {
+    const str = `${c.key}=${c.value}; expires=${c.expires}; domain=${c.domain}; path=${c.path};`;
+    jar.setCookie(str, "https://" + c.domain);
+  });
 
-		appState.map(function (c) {
-			const str = c.key + "=" + c.value + "; expires=" + c.expires + "; domain=" + c.domain + "; path=" + c.path + ";";
-			jar.setCookie(str, "http://" + c.domain);
-		});
-
-		// Load the main page.
-		mainPromise = utils
-			.get('https://www.facebook.com/', jar, null, globalOptions, { noRef: true })
-			.then(utils.saveCookies(jar));
-	} else {
-		if (email) {
-			throw { error: "Currently, the login method by email and password is no longer supported, please use the login method by appState" };
-		}
-		else {
-			throw { error: "No appState given." };
-		}
-	}
+  mainPromise = utils.get('https://www.facebook.com/', jar, null, globalOptions, { noRef: true })
+    .then(() => utils.saveCookies(jar));
+} else {
+  if (email) {
+    throw { error: "Currently, the login method by email and password is no longer supported, please use the login method by appState" };
+  } else {
+    throw { error: "No appState given." };
+  }
+}
 
 	let ctx = null;
 	let _defaultFuncs = null;
