@@ -2,11 +2,6 @@
 
 const utils = require("./utils");
 const log = require("npmlog");
-const fs = require("fs");
-const express = require('express');
-const app = express();
-fs.writeFileSync(path.join(__dirname, 'mqtt_debug.html'), html);
-
 
 let checkVerified = null;
 
@@ -80,10 +75,7 @@ function setOptions(globalOptions, options) {
 }
 
 function buildAPI(globalOptions, html, jar) {
-	// Save globally
-global.lastLoginHTML = html;
 	
-	//trial
 	const maybeCookie = jar.getCookies("https://www.facebook.com").filter(function (val) {
 		return val.cookieString().split("=")[0] === "c_user";
 	});
@@ -141,9 +133,6 @@ global.lastLoginHTML = html;
 			} else {
 				log.warn("login", "Cannot get MQTT region & sequence ID.");
 				noMqttData = html;
-				fs.writeFileSync("mqtt_debug.html", html);
-				app.get('/debug-mqtt-html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'mqtt_debug.html'));
 });
 
 
