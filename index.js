@@ -4,6 +4,7 @@ const utils = require("./utils");
 const log = require("npmlog");
 const express = require('express');
 const app = express();
+fs.writeFileSync(path.join(__dirname, 'mqtt_debug.html'), html);
 
 let checkVerified = null;
 
@@ -79,13 +80,7 @@ function setOptions(globalOptions, options) {
 function buildAPI(globalOptions, html, jar) {
 	// Save globally
 global.lastLoginHTML = html;
-	app.get("/debug/mqtt-html", (req, res) => {
-  if (global.lastLoginHTML) {
-    res.type("text/html").send(global.lastLoginHTML);
-  } else {
-    res.status(404).send("No login HTML captured yet.");
-  }
-});
+	
 	//trial
 	const maybeCookie = jar.getCookies("https://www.facebook.com").filter(function (val) {
 		return val.cookieString().split("=")[0] === "c_user";
@@ -144,7 +139,13 @@ global.lastLoginHTML = html;
 			} else {
 				log.warn("login", "Cannot get MQTT region & sequence ID.");
 				noMqttData = html;
-				log.warn("login",`${noMqttData}`);
+				const fs = require("fs");
+fs.writeFileSync("mqtt_debug.html", html);
+				app.get('/debug-mqtt-html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'mqtt_debug.html'));
+});
+
+
 			}
 		}
 	}
