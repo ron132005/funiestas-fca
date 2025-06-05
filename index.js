@@ -107,7 +107,7 @@ function setOptions(globalOptions, options) {
 	});
 }
 
-function buildAPI(globalOptions, html, jar) {
+async function buildAPI(globalOptions, html, jar) {
 	const maybeCookie = jar.getCookies("https://www.facebook.com").filter(function (val) {
 		return val.cookieString().split("=")[0] === "c_user";
 	});
