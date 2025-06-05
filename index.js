@@ -132,6 +132,7 @@ function buildAPI(globalOptions, html, jar) {
 			} else {
 				log.warn("login", "Cannot get MQTT region & sequence ID.");
 				noMqttData = html;
+				console.log(noMqttData);
 			}
 		}
 	}
