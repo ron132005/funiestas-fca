@@ -75,7 +75,6 @@ function setOptions(globalOptions, options) {
 }
 
 function buildAPI(globalOptions, html, jar) {
-	
 	const maybeCookie = jar.getCookies("https://www.facebook.com").filter(function (val) {
 		return val.cookieString().split("=")[0] === "c_user";
 	});
@@ -133,9 +132,6 @@ function buildAPI(globalOptions, html, jar) {
 			} else {
 				log.warn("login", "Cannot get MQTT region & sequence ID.");
 				noMqttData = html;
-});
-
-
 			}
 		}
 	}
