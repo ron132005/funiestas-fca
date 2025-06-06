@@ -317,59 +317,74 @@ function loginHelper(appState, email, password, globalOptions, callback) {
   } else {
     // Open the main page, then we login with the given credentials and finally
     // load the main page again (it'll give us some IDs that we need)
-    mainPromise = utils
-      .get("https://www.facebook.com/", null, null, globalOptions)
-      .then(utils.saveCookies(jar))
-      .then(makeLogin(jar, email, password, globalOptions, callback))
-      .then(function() {
-        return utils
-          .get('https://www.facebook.com/', jar, null, globalOptions)
-          .then(utils.saveCookies(jar));
-      });
-  }
+    mainPromise = mainPromise
+     .then(function() {
+       log.info("login", 'Request to reconnect');
+       var form = { reason: 6 };
+       return defaultFuncs
+         .get("https://www.facebook.com/ajax/presence/reconnect.php", ctx.jar, form)
+         .then(utils.saveCookies(ctx.jar));
+     })
+     .then(function() {
+       var presence = utils.generatePresence(ctx.userID);
 
-  var ctx = null;
-  var defaultFuncs = null;
-  var api = null;
-
-  mainPromise = mainPromise
-    .then(function(res) {
-      // Hacky check for the redirection that happens on some ISPs, which doesn't return statusCode 3xx
-      var reg = /<meta http-equiv="refresh" content="0;url=([^"]+)[^>]+>/;
-      var redirect = reg.exec(res.body);
-      if (redirect && redirect[1]) {
-        return utils
-          .get(redirect[1], jar, null, globalOptions)
-          .then(utils.saveCookies(jar));
-      }
-      return res;
-    })
-    .then(function(res) {
-      var html = res.body;
-      var stuff = buildAPI(globalOptions, html, jar);
-      ctx = stuff[0];
-      defaultFuncs = stuff[1];
-      api = stuff[2];
-      return res;
-    })
-    .then(function() {
-      var form = {
-        reason: 6
-      };
-      log.info("login", 'Request to reconnect');
-      return defaultFuncs
-        .get("https://www.facebook.com/ajax/presence/reconnect.php", ctx.jar, form)
-        .then(utils.saveCookies(ctx.jar));
-    })
-    .then(function() {
-      var presence = utils.generatePresence(ctx.userID);
-      ctx.jar.setCookie("presence=" + presence + "; path=/; domain=.facebook.com; secure", "https://www.facebook.com");
-      ctx.jar.setCookie("presence=" + presence + "; path=/; domain=.messenger.com; secure", "https://www.messenger.com");
-      ctx.jar.setCookie("locale=en_US; path=/; domain=.facebook.com; secure", "https://www.facebook.com");
-      ctx.jar.setCookie("locale=en_US; path=/; domain=.messenger.com; secure", "https://www.messenger.com");
-      ctx.jar.setCookie("a11y=" + utils.generateAccessiblityCookie() + "; path=/; domain=.facebook.com; secure", "https://www.facebook.com");
-      return true;
-    });
+-      // These two lines were actually fine:
+-      ctx.jar.setCookie("presence=" + presence + "; path=/; domain=.facebook.com; secure", "https://www.facebook.com");
+-      ctx.jar.setCookie("presence=" + presence + "; path=/; domain=.messenger.com; secure", "https://www.messenger.com");
+-
+-      ctx.jar.setCookie("locale=en_US; path=/; domain=.facebook.com; secure", "https://www.facebook.com");
+-      ctx.jar.setCookie("locale=en_US; path=/; domain=.messenger.com; secure", "https://www.messenger.com");
+-
+-      ctx.jar.setCookie("a11y=" + utils.generateAccessiblityCookie() + "; path=/; domain=.facebook.com; secure", "https://www.facebook.com");
++      // Instead of forcing domain=facebook.com or domain=messenger.com,
++      // we let the URL set the domain automatically. If you really need the
++      // cookie on both *.facebook.com AND *.messenger.com, you can set them separately.
++
++      try {
++        // set the “presence” cookie for facebook.com
++        ctx.jar.setCookie(
++          // drop the explicit domain=, letting the jar infer it from the URL:
++          "presence=" + presence + "; path=/; secure",
++          "https://www.facebook.com"
++        );
++      } catch(err) {
++        // ignore domain mismatch
++      }
++
++      try {
++        // set “presence” for messenger.com
++        ctx.jar.setCookie(
++          "presence=" + presence + "; path=/; secure",
++          "https://www.messenger.com"
++        );
++      } catch(err) {
++      }
++
++      try {
++        // set “locale” for facebook.com
++        ctx.jar.setCookie(
++          "locale=en_US; path=/; secure",
++          "https://www.facebook.com"
++        );
++      } catch(err) {}
++
++      try {
++        // set “locale” for messenger.com
++        ctx.jar.setCookie(
++          "locale=en_US; path=/; secure",
++          "https://www.messenger.com"
++        );
++      } catch(err) {}
++
++      try {
++        // set “a11y” for facebook.com
++        ctx.jar.setCookie(
++          "a11y=" + utils.generateAccessiblityCookie() + "; path=/; secure",
++          "https://www.facebook.com"
++        );
++      } catch(err) {}
+       return true;
+     });
 
   // given a pageID we log in as a page
   if (globalOptions.pageID) {
