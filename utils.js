@@ -96,20 +96,14 @@ function setProxy(url) {
 
 function getHeaders(url, options, ctx, customHeader) {
 	const headers = {
-  "Content-Type": "application/x-www-form-urlencoded",
-  "Referer": "https://www.facebook.com/",
-  "Host": url.replace("https://", "").split("/")[0],
-  "Origin": "https://www.facebook.com",
-  "User-Agent": options.userAgent || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-  "Connection": "keep-alive",
-  "sec-fetch-site": "same-origin",
-  "Accept": "*/*",
-  "X-FB-Friendly-Name": "MessengerPlatform_MQTT_GetRegion",
-  "X-FB-Connection-Type": "WIFI",
-  "X-FB-Connection-Quality": "EXCELLENT",
-  "X-FB-Net-HNI": "310260", // optional (simulate carrier info)
-  "X-FB-SIM-HNI": "310260"  // optional
-};
+		"Content-Type": "application/x-www-form-urlencoded",
+		Referer: "https://www.facebook.com/",
+		Host: url.replace("https://", "").split("/")[0],
+		Origin: "https://www.facebook.com",
+		"User-Agent": options.userAgent,
+		Connection: "keep-alive",
+		"sec-fetch-site": "same-origin"
+	};
 	if (customHeader) {
 		Object.assign(headers, customHeader);
 	}
@@ -1547,4 +1541,3 @@ module.exports = {
 	setProxy,
 	checkLiveCookie
 };
-
