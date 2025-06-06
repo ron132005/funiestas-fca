@@ -74,6 +74,41 @@ function setOptions(globalOptions, options) {
     });
 }
 
+// Helper to fetch MQTT config via Facebook’s GraphQL API
+async function fetchMQTTConfig(ctx) {
+  const cookie = ctx.jar.getCookieString('https://www.facebook.com');
+  // The doc_id for the MessengerPlatform_MQTT_GetRegion query (updated as needed)
+  const formData = {
+    doc_id: 'INSERT_DOC_ID_HERE',  // e.g. the query ID for MessengerPlatform_MQTT_GetRegion
+    variables: JSON.stringify({})
+  };
+  request.post({
+    url: 'https://www.facebook.com/api/graphql/',
+    headers: {
+      'User-Agent': ctx.globalOptions.userAgent,
+      'Cookie': cookie,
+      'X-FB-Friendly-Name': 'MessengerPlatform_MQTT_GetRegion'
+    },
+    form: formData
+  }, (err, res, body) => {
+    if (err) {
+      log.error('fetchMQTTConfig', err);
+      return;
+    }
+    try {
+      const data = JSON.parse(body);
+      // Depending on the response structure, extract the fields. For example:
+      const mqttData = data.data; 
+      ctx.lastSeqId = mqttData.iris_seq_id;
+      ctx.mqttEndpoint = mqttData.endpoint;
+      ctx.region = mqttData.region;
+      log.info('fetchMQTTConfig', {endpoint: ctx.mqttEndpoint, seqId: ctx.lastSeqId, region: ctx.region});
+    } catch (parseErr) {
+      log.error('fetchMQTTConfig', parseErr);
+    }
+  });
+}
+
 function buildAPI(globalOptions, html, jar) {
     const maybeCookie = jar.getCookies("https://www.facebook.com")
         .filter(function (val) {
@@ -149,6 +184,28 @@ function buildAPI(globalOptions, html, jar) {
             }
         }
     }
+      // After successful login, attempt to get MQTT info from the HTML page
+  const html = /* response HTML from messenger/chat page */;
+  if (html && html.length > 0) {
+    // Existing regex to extract MQTT config from HTML (example uses double quotes and escaped slashes)
+    const match = /"endpoint":"(wss:\\/\\/[^"]+)","iris_seq_id":"(\\d+)"/.exec(html);
+    if (match) {
+      ctx.mqttEndpoint = match[1];
+      ctx.lastSeqId = match[2];
+      // Extract region parameter if present
+      try {
+        ctx.region = new URL(ctx.mqttEndpoint).searchParams.get('region') || ctx.region;
+      } catch (e) {
+        // ignore if URL parsing fails
+      }
+      log.info('buildAPI', 'Extracted MQTT config from HTML');
+    }
+  }
+
+  // Fallback: if HTML was empty or did not yield MQTT info, use GraphQL
+  if ((!html || html.length === 0) && !ctx.mqttEndpoint) {
+    fetchMQTTConfig(ctx);
+  }
 
     // All data available to api functions
     const ctx = {
